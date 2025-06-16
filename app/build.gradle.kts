@@ -19,8 +19,10 @@ java {
 }
 
 application {
-    mainClass = "Main.java"
+    mainClass = "AppMain"
 }
+
+
 
 tasks.named<Test>("test") {
     // Use JUnit Platform for unit tests.
