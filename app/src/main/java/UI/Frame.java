@@ -18,7 +18,6 @@ public class Frame{
         frm.setResizable(false);
         frm.setIconImage(new ImageIcon("src/main/resources/calc.png").getImage());
         frm.setLayout(null);
-        frm.getContentPane().setBackground(Color.GRAY);
     }
 
     public JFrame getFrame() {

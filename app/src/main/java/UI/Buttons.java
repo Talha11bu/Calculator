@@ -13,9 +13,6 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.JMenuBar;
-import javax.swing.JMenuItem;
-import javax.swing.JMenu;
 
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
@@ -25,10 +22,7 @@ public class Buttons{
     JPanel panel;
     JTextField TextArea;
     JButton add, sub, mul, div, eq, clr, dot, del, mod, pow;
-    
-    JMenuBar menuBar;
-    JMenu themes;
-    JMenuItem light, dark, red;
+    Theme themeMenu;
 
     JButton[] num = new JButton[10];
     JButton[] function = new JButton[10];
@@ -46,20 +40,8 @@ public class Buttons{
         TextArea.setFont(font);
         TextArea.setForeground(Color.BLACK);
         TextArea.setEditable(false);
-        TextArea.setOpaque(false);
         TextArea.setBorder(BorderFactory.createBevelBorder(1, Color.DARK_GRAY, Color.GRAY));
 
-        menuBar = new JMenuBar();
-        themes = new JMenu("Themes");
-        light = new JMenuItem("Light");
-        dark = new JMenuItem("Dark");
-        red = new JMenuItem("Red");
-
-        themes.add(light);
-        themes.add(dark);
-        themes.add(red);
-        menuBar.add(themes);
-        frm.setJMenuBar(menuBar);
 
         add = new JButton("+");
         sub = new JButton("-");
@@ -86,9 +68,7 @@ public class Buttons{
         for (JButton function1 : function) {
             function1.addActionListener(listener);
             function1.setFont(font);
-            function1.setForeground(Color.BLACK);
             function1.setFocusable(false);
-            function1.setOpaque(false);
             function1.setContentAreaFilled(false);
             function1.setBorder(BorderFactory.createBevelBorder(1, Color.DARK_GRAY, Color.GRAY));
         }
@@ -97,9 +77,7 @@ public class Buttons{
             num[i] = new JButton(String.valueOf(i));
             num[i].addActionListener(listener);
             num[i].setFont(font);
-            num[i].setForeground(Color.BLACK);
             num[i].setFocusable(false);
-            num[i].setOpaque(false);
             num[i].setContentAreaFilled(false);
             num[i].setBorder(BorderFactory.createBevelBorder(1, Color.DARK_GRAY, Color.GRAY));
         }
@@ -129,6 +107,8 @@ public class Buttons{
         panel.add(num[0]);
         panel.add(function[8]);
         panel.add(function[4]);
+
+        themeMenu = new Theme(frm, TextArea, function, num);
 
         frm.add(TextArea);
         frm.add(panel);
@@ -165,12 +145,12 @@ public class Buttons{
                         record.append(e.getActionCommand());
                     else if(validator.isValid(record.toString()))
                         record.append(e.getActionCommand());
-                    else if(isOperator(record.length()-1) && !isOperator(record.length()-2) && e.getActionCommand().equals("-"))
-                        record.append(e.getActionCommand());
-                    else if(isOperator(record.length()-1) && !isOperator(record.length()-2)){
+                    else if(isOperator(record.length()-1) && !e.getActionCommand().equals("-")){  
                         record.deleteCharAt(record.length()-1);
                         record.append(e.getActionCommand());
                     }
+                    else if(record.length() > 2 && isOperator(record.length()-2) && e.getActionCommand().equals("-"))
+                        record.append(e.getActionCommand());
                     TextArea.setText(record.toString());
                 }
 
