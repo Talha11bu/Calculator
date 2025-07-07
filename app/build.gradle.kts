@@ -7,6 +7,8 @@ repositories {
 }
 
 dependencies {
+    implementation("net.objecthunter:exp4j:0.4.8")
+    
     testImplementation(libs.junit.jupiter)
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")

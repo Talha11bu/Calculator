@@ -1,25 +1,34 @@
 package UI;
 
+import Util.Validator;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.swing.BorderFactory;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
+import javax.swing.JMenu;
+
+import net.objecthunter.exp4j.Expression;
+import net.objecthunter.exp4j.ExpressionBuilder;
 
 public class Buttons{
 
-    JFrame frm;
     JPanel panel;
     JTextField TextArea;
-    JButton add, sub, mul, div, eq, clr, dot, del, mod, pow, neg;
+    JButton add, sub, mul, div, eq, clr, dot, del, mod, pow;
+    
+    JMenuBar menuBar;
+    JMenu themes;
+    JMenuItem light, dark, red;
 
     JButton[] num = new JButton[10];
     JButton[] function = new JButton[10];
@@ -28,15 +37,29 @@ public class Buttons{
 
     StringBuilder record = new StringBuilder();
 
+    Validator validator =  new Validator();
+
     public Buttons(JFrame frm) {
-        this.frm = frm;
+    
         TextArea = new JTextField();
-        TextArea.setBounds(50, 30, 300, 50);
+        TextArea.setBounds(50, 20, 300, 50);
         TextArea.setFont(font);
         TextArea.setForeground(Color.BLACK);
         TextArea.setEditable(false);
         TextArea.setOpaque(false);
         TextArea.setBorder(BorderFactory.createBevelBorder(1, Color.DARK_GRAY, Color.GRAY));
+
+        menuBar = new JMenuBar();
+        themes = new JMenu("Themes");
+        light = new JMenuItem("Light");
+        dark = new JMenuItem("Dark");
+        red = new JMenuItem("Red");
+
+        themes.add(light);
+        themes.add(dark);
+        themes.add(red);
+        menuBar.add(themes);
+        frm.setJMenuBar(menuBar);
 
         add = new JButton("+");
         sub = new JButton("-");
@@ -48,7 +71,6 @@ public class Buttons{
         del = new JButton("Del");
         mod = new JButton("%");
         pow = new JButton("^");
-        neg = new JButton("(-)");
 
         function[0] = add;
         function[1] = sub;
@@ -82,12 +104,6 @@ public class Buttons{
             num[i].setBorder(BorderFactory.createBevelBorder(1, Color.DARK_GRAY, Color.GRAY));
         }
 
-        neg.setBounds(165, 405, 70, 50);
-        neg.setFont(font);
-        neg.setForeground(Color.BLACK);
-        neg.setOpaque(false);
-        neg.setContentAreaFilled(false);
-
         panel = new JPanel();
         panel.setBounds(50, 100, 300, 300);
         panel.setOpaque(false);
@@ -116,38 +132,19 @@ public class Buttons{
 
         frm.add(TextArea);
         frm.add(panel);
-        frm.add(neg);
 
     }
 
-    private String calculate(){   
-        var match = new ArrayList<String>(List.of(record.toString().split(" ")));    
-        double result = Double.parseDouble(match.get(0));
-        match.remove(0);
-
-        while(!match.isEmpty()){
-            result = switch (match.get(0)) {
-                case "+" -> result + Double.parseDouble(match.get(1));
-                case "-" -> result - Double.parseDouble(match.get(1));
-                case "*" -> result * Double.parseDouble(match.get(1));
-                case "/" -> result / Double.parseDouble(match.get(1));
-                default -> Double.parseDouble(match.get(1));      
-            };
-            match.remove(0);
-            match.remove(0);
-        }
-
+    private String calculate(String equation){
+        Expression expression = new ExpressionBuilder(equation).build();
         record.delete(0, record.length());
-        record.append(Double.toString(result));
+        record.append(expression.evaluate());
         return record.toString();
     }
 
-    private void removeLastCharIfOperator() {
-        if(record.length() > 1){
-            char str = record.charAt(record.length()-2);
-            if("+".equals(str) || "-".equals(str) || "*".equals(str) || "/".equals(str) || "%".equals(str) || "^".equals(str))
-                record.delete(record.length()-3, record.length());
-        }
+    private boolean isOperator(int Position) {
+        char ch = record.charAt(Position);
+        return '+' == ch || '-' == ch || '*' == ch || '/' == ch || '%' == ch || '^' == ch ;        
     }
 
     ActionListener listener = new ActionListener(){
@@ -158,55 +155,53 @@ public class Buttons{
             switch (e.getActionCommand()) {
 
                 case "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" -> {
-                    TextArea.setText(TextArea.getText().concat(e.getActionCommand()));
                     record.append(e.getActionCommand());
+                    TextArea.setText(record.toString());
                 }
 
                 case "+", "-", "/", "%", "^", "*" -> {
-                    if(!record.isEmpty()){
-                        removeLastCharIfOperator();
-                        record.append(" ");
+        
+                    if(record.isEmpty() && e.getActionCommand().equals("-"))
                         record.append(e.getActionCommand());
-                        record.append(" ");
+                    else if(validator.isValid(record.toString()))
+                        record.append(e.getActionCommand());
+                    else if(isOperator(record.length()-1) && !isOperator(record.length()-2) && e.getActionCommand().equals("-"))
+                        record.append(e.getActionCommand());
+                    else if(isOperator(record.length()-1) && !isOperator(record.length()-2)){
+                        record.deleteCharAt(record.length()-1);
+                        record.append(e.getActionCommand());
                     }
                     TextArea.setText(record.toString());
                 }
 
                 case "=" -> {
-                    if(record.length()>0)
-                        removeLastCharIfOperator();
-                    TextArea.setText(calculate());
+                    if(validator.isValid(record.toString()))
+                        TextArea.setText(calculate(record.toString()));
                 }
 
                 case "C" -> {
                     record.delete(0, record.length());
-                    TextArea.setText("");
+                    TextArea.setText(record.toString());
                 }
 
                 case "Del" -> {
-                    if (!(record.length() > 0))
-                        removeLastCharIfOperator();
-                        else
-                            record.deleteCharAt(record.length()-1);
+                    if (!record.isEmpty()){
+                        record.deleteCharAt(record.length()-1);
+                    }
                     TextArea.setText(record.toString());
                 }
 
                 case "." -> {
-                    record.append(e.getActionCommand());
+                    if(validator.isValid(record.toString()))
+                        record.append(".");
                     TextArea.setText(record.toString());
                 }
 
-                case "(-)" -> {
-                    if(record.length() > 1){
-                    char str = record.charAt(record.length()-2);
-                    if("+".equals(str) || "-".equals(str) || "*".equals(str) || "/".equals(str) || "%".equals(str) || "^".equals(str))
-                        record.append("-");
-                    }
-                    TextArea.setText(record.toString());
+                default -> {
+                    System.out.println("Somethings went wrong");
                 }
+
             }
         }
-
     };
-
 }

@@ -1,3 +1,8 @@
+package UI;
+
 public class Theme {
-    // Define Dark and Light Mode themes
+    
+    public Theme() {
+        
+    }
 }
